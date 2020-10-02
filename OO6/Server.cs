@@ -6,6 +6,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FanLibrary;
+using Newtonsoft.Json;
 
 namespace OO6
 {
@@ -78,13 +80,16 @@ namespace OO6
 
         public static void DoClient(TcpClient socket)
         {
+
+            List<FanOutput> fanlist = new List<FanOutput>() { new FanOutput() { Id = 1 }, new FanOutput() { Id = 2 } };
+
             Stream ns = socket.GetStream();
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
             sw.AutoFlush = true;
 
             sw.WriteLine("You are connected!!!");
-            int numOfWords = 0;
+
 
             while (true)
             {
@@ -98,14 +103,39 @@ namespace OO6
                     break;
                 }
 
-                numOfWords += message.Split(" ").Length;
+                switch (message.ToLower())
+                {
+                    case "hentalle":
 
-                Console.WriteLine("Received message : " + message);
+                        string data = JsonConvert.SerializeObject(fanlist);
+                        sw.WriteLine(data);
 
+                        break;
 
-                sw.WriteLine(message + $" number of send words {numOfWords}");
+                    case "hent":
+                        string meassage2 = sr.ReadLine();
 
+                        int idet = Convert.ToInt32(meassage2);
 
+                        FanOutput fan = fanlist.Find(f => f.Id == idet);
+                        string data2 = JsonConvert.SerializeObject(fan);
+
+                        sw.WriteLine(data2);
+                        break;
+
+                    case "gem":
+
+                        string fanstring = sr.ReadLine();
+                        FanOutput fan2 = JsonConvert.DeserializeObject<FanOutput>(fanstring);
+                        fanlist.Add(fan2);
+
+                        break;
+
+                    default:
+                        sw.Write("Please select method");
+                        break;
+
+                }
 
 
 
